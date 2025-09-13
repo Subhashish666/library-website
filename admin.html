@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Upload Book</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2>Upload a Book (Admin)</h2>
+  <form id="uploadForm">
+    <input id="title" placeholder="Title" required /><br/>
+    <input id="author" placeholder="Author" /><br/>
+    <input id="file" type="file" accept="application/pdf" required /><br/>
+    <button type="submit">Upload</button>
+  </form>
+  <p id="status"></p>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const form = document.getElementById('uploadForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      const author = document.getElementById('author').value.trim();
+      const file = document.getElementById('file').files[0];
+      if (!file) return status.textContent = 'Pick a PDF file.';
+
+      const path = 'books/' + Date.now() + '_' + file.name;
+      const ref = storage.ref(path);
+      status.textContent = 'Uploading...';
+      ref.put(file).then(snapshot => {
+        // add doc to firestore with storage path
+        return db.collection('books').add({
+          title, author,
+          filePath: snapshot.ref.fullPath,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }).then(() => {
+        status.textContent = 'Upload done ✅';
+        form.reset();
+      }).catch(err => {
+        status.textContent = 'Error: ' + err.message;
+      });
+    });
+  </script>
+</body>
+</html>

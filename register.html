@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register - My Library</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2>Register</h2>
+  <form id="regForm">
+    <input id="name" placeholder="Full name" required /><br/>
+    <input id="email" type="email" placeholder="Email" required /><br/>
+    <input id="phone" placeholder="Phone" required /><br/>
+    <input id="studentId" placeholder="Student ID" required /><br/>
+    <button type="submit">Register</button>
+  </form>
+  <p id="msg"></p>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    // init firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById('regForm');
+    const msg = document.getElementById('msg');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const studentId = document.getElementById('studentId').value.trim();
+
+      db.collection('students').add({
+        name, email, phone, studentId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        msg.textContent = 'Registered! ✅';
+        form.reset();
+      }).catch(err => {
+        msg.textContent = 'Error: ' + err.message;
+      });
+    });
+  </script>
+</body>
+</html>
